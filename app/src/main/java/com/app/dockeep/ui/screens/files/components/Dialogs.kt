@@ -1,0 +1,83 @@
+package com.app.dockeep.ui.screens.files.components
+
+import android.net.Uri
+import androidx.compose.runtime.Composable
+import com.app.dockeep.model.DocumentItem
+import com.app.dockeep.ui.components.ConfirmActionDialog
+import com.app.dockeep.ui.components.SelectFolderDialog
+import com.app.dockeep.ui.components.TextInputDialog
+
+@Composable
+fun Dialogs(
+    showConfirmDelete: Boolean,
+    dismissDelete: () -> Unit,
+    onDeleteConfirm: () -> Unit,
+    showCreateFolder: Boolean,
+    dismissCreateFolder: () -> Unit,
+    onCreateFolderConfirm: (String) -> Unit,
+    showRename: Boolean,
+    dismissRename: () -> Unit,
+    onConfirmRename: (String) -> Unit,
+    showMove: Boolean,
+    dismissMove: () -> Unit,
+    onMoveConfirm: (String) -> Unit,
+    removeOnMove: Boolean,
+    dirList: List<Pair<String, Uri>>,
+    rootUri: String,
+    effectiveItems: List<DocumentItem>,
+    showArchive: Boolean,
+    dismissArchive:()->Unit,
+    onArchiveConfirm: (String) -> Unit,
+) {
+    if (showConfirmDelete) {
+        ConfirmActionDialog(
+            title = "将 ${effectiveItems.size} 项移入回收站？",
+            message = "可以从“回收站与备份”恢复，不会自动清理。外部原文件不受影响。",
+            onDismiss = dismissDelete,
+            onConfirm = onDeleteConfirm,
+        )
+    }
+
+    if (showCreateFolder) {
+        TextInputDialog(
+            title = "新建文件夹",
+            onDismiss = dismissCreateFolder,
+            onConfirm = onCreateFolderConfirm,
+        )
+    }
+
+    if (showArchive) {
+        TextInputDialog(
+            title = "Name zip file",
+            initialText = "",
+            onDismiss = dismissArchive,
+            onConfirm = onArchiveConfirm,
+        )
+    }
+
+    if (showRename) {
+        TextInputDialog(
+            title = "重命名",
+            initialText = effectiveItems[0].name,
+            onDismiss = dismissRename,
+            onConfirm = onConfirmRename,
+        )
+    }
+
+    if (showMove) {
+        val dirsFiltered = dirList.filterNot { fu ->
+            fu.second.toString() == rootUri || effectiveItems.any {
+                fu.second.toString().startsWith(it.uri.toString())
+            }
+        }.toMutableList()
+
+        if (rootUri.isEmpty()) dirsFiltered.removeAt(0)
+
+        SelectFolderDialog(
+            title = if (removeOnMove) "Move" else "Copy",
+            folders = dirsFiltered,
+            onConfirm = onMoveConfirm,
+            onDismiss = dismissMove,
+        )
+    }
+}

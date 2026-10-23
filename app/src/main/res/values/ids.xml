@@ -1,0 +1,6 @@
+<resources>
+    <item name="preview_root" type="id"/>
+    <item name="preview_back" type="id"/>
+    <item name="preview_title" type="id"/>
+    <item name="preview_toolbar" type="id"/>
+</resources>
