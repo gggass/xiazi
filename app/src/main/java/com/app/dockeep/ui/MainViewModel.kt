@@ -31,7 +31,10 @@ import kotlinx.coroutines.withContext
 class MainViewModel constructor(
     application: Application
 ) : AndroidViewModel(application) {
-    companion object { val vaultRevision = MutableStateFlow(0L) }
+    companion object {
+        val vaultRevision = MutableStateFlow(0L)
+        val movingFiles = MutableStateFlow(false)
+    }
     private fun vaultChanged() { vaultRevision.value += 1 }
     private val prefRepo: DataStoreRepository = com.app.dockeep.data.preferences.DataStoreRepositoryImpl(application)
     private val filesRepo: FilesRepository = com.app.dockeep.data.files.FilesRepositoryImpl(application)
@@ -282,6 +285,45 @@ class MainViewModel constructor(
             vaultChanged()
             loadFiles(folder)
             displayMessage("已重命名")
+        }
+    }
+
+    fun moveAcross(sourceFolder: String, uris: List<Uri>, destination: String) {
+        if(uris.isEmpty() || !movingFiles.compareAndSet(false,true)) return
+        val selected=uris.toList()
+        loading.value=true
+        viewModelScope.launch {
+            try {
+                val result=withContext(Dispatchers.IO) {
+                    val context=getApplication<Application>()
+                    val current=com.app.dockeep.data.files.VaultFiles.file(context,resolveFolderUri(sourceFolder))
+                    val sources=selected.map { com.app.dockeep.data.files.VaultFiles.file(context,it) }
+                    require(sources.none { it==current || current.path.startsWith(it.path+java.io.File.separator) }) {
+                        "当前目录位于所选文件夹内，请先返回上级目录后移动"
+                    }
+                    val target=com.app.dockeep.data.files.VaultFiles.file(context,resolveFolderUri(destination))
+                    com.app.dockeep.data.files.VaultMover(com.app.dockeep.data.files.VaultFiles.root(context),
+                        com.app.dockeep.data.files.VaultFiles).move(sources,target)
+                }
+                val renamed=result.moved.count { it.renamed }
+                val message=if(result.moved.isEmpty() && result.failures.isEmpty() && result.skipped.isNotEmpty())
+                    "已在目标目录，无需移动"
+                else buildString {
+                    append("已移动 ${result.moved.size} 项")
+                    if(renamed>0) append("，$renamed 项同名已自动改名")
+                    if(result.skipped.isNotEmpty()) append("，${result.skipped.size} 项已在目标目录")
+                    if(result.failures.isNotEmpty()) append("；${result.failures.size} 项未完成并保留原位：${result.failures.first().source.name}（${result.failures.first().reason}）")
+                }
+                displayMessage(message)
+            } catch(e: kotlinx.coroutines.CancellationException) { throw e }
+            catch(e: Exception) { displayMessage("移动未完成：${e.message}") }
+            finally {
+                withContext(kotlinx.coroutines.NonCancellable + Dispatchers.Main) {
+                    vaultChanged()
+                    loading.value=false
+                    movingFiles.value=false
+                }
+            }
         }
     }
 

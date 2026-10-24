@@ -21,7 +21,7 @@ fun SettingsScreen(onGoBack: () -> Unit) {
     val context=LocalContext.current
     Scaffold(topBar = { TopAppBar(title = { Text("设置") }, navigationIcon = { com.app.dockeep.ui.components.BackChevron(onGoBack) }) }) { padding ->
         Column(Modifier.padding(padding).verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
-            Text("匣子 · 简版 0.2.1", style = MaterialTheme.typography.headlineSmall)
+            Text("匣子 · 简版 0.3.0", style = MaterialTheme.typography.headlineSmall)
             Text("文件保存在应用内部，收纳始终保留外部原文件。无需联网，无需全盘访问权限。")
             HorizontalDivider()
             Text("界面配色", style = MaterialTheme.typography.titleMedium)

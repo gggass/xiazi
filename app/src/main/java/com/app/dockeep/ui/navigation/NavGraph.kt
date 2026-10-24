@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.*
+import com.app.dockeep.ui.screens.files.TransferTarget
 import com.app.dockeep.ui.screens.files.FilesScreen
 import com.app.dockeep.ui.screens.onboard.OnboardingScreen
 import com.app.dockeep.ui.screens.settings.SettingsScreen
@@ -54,7 +55,8 @@ fun NavGraph(navController: NavHostController,firstStart: Boolean) {
                         },
                         paneKey="left",compact=showRight,rightExpanded=showRight,
                         onToggleRight={rightExpanded=!rightExpanded;if(!rightExpanded) activeRight=false},
-                        handleSystemBack=!showRight || !activeRight)
+                        handleSystemBack=!showRight || !activeRight,
+                        transferTarget=if(showRight) transferTarget(rightEntry,true) else null)
                 }
                 composable(SETTINGS_ROUTE) { SettingsScreen(onGoBack={navController.popBackStack()}) }
                 composable(GUIDE_ROUTE) {
@@ -74,10 +76,18 @@ fun NavGraph(navController: NavHostController,firstStart: Boolean) {
                         FilesScreen(path,uri,rightController,
                             onNavigate={target,name->rightController.navigate(FolderRoute.create(target,name))},
                             paneKey="right",compact=true,handleSystemBack=activeRight,
-                            onSettings={navController.navigate(SETTINGS_ROUTE)})
+                            onSettings={navController.navigate(SETTINGS_ROUTE)},
+                            transferTarget=transferTarget(leftEntry,false))
                     }
                 }
             }
         }
     }
+}
+
+private fun transferTarget(entry: androidx.navigation.NavBackStackEntry?,toRight: Boolean): TransferTarget? {
+    if(entry?.destination?.route!="$FILES_ROUTE/{$PATH_ARG}/{$URI_ARG}") return null
+    val uri=FolderRoute.decodeUri(entry.arguments?.getString(URI_ARG).orEmpty())
+    val relative=Uri.parse(uri).pathSegments.getOrNull(1).orEmpty()
+    return TransferTarget(uri,if(relative.isBlank()) "匣子" else "匣子/$relative",toRight)
 }

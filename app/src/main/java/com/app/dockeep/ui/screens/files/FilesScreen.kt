@@ -10,6 +10,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -53,6 +55,11 @@ import com.app.dockeep.utils.Helper.openDocument
 import com.app.dockeep.utils.Helper.openDocumentIntent
 import com.app.dockeep.utils.Helper.shareDocument
 
+data class TransferTarget(val uri: String, val name: String, val toRight: Boolean) {
+    val label get() = if(toRight) "移到右侧 →" else "← 移到左侧"
+}
+private data class PendingTransfer(val items: List<DocumentItem>, val target: TransferTarget)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilesScreen(
@@ -65,7 +72,8 @@ fun FilesScreen(
     onToggleRight: (() -> Unit)? = null,
     rightExpanded: Boolean = false,
     handleSystemBack: Boolean = true,
-    onSettings: (() -> Unit)? = null
+    onSettings: (() -> Unit)? = null,
+    transferTarget: TransferTarget? = null
 ) {
     var pendingExport by androidx.compose.runtime.saveable.rememberSaveable { mutableStateOf("") }
     val exportContext = LocalContext.current
@@ -96,6 +104,9 @@ fun FilesScreen(
         }
 
     val context = LocalContext.current
+    val focusManager=androidx.compose.ui.platform.LocalFocusManager.current
+    var pendingTransfer by remember { mutableStateOf<PendingTransfer?>(null) }
+    val movingFiles by MainViewModel.movingFiles.collectAsState()
     val scrollBehaviour = TopAppBarDefaults.enterAlwaysScrollBehavior(rememberTopAppBarState())
     var showCreateFolderDialog by remember { mutableStateOf(false) }
     var showRenameFileDialog by remember { mutableStateOf(false) }
@@ -143,6 +154,7 @@ fun FilesScreen(
         key1 = isInSelectionMode,
         key2 = selectedItems.size,
     ) {
+        if(isInSelectionMode) focusManager.clearFocus()
         if (isInSelectionMode && selectedItems.isEmpty()) {
             isInSelectionMode = false
         }
@@ -156,11 +168,30 @@ fun FilesScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
         floatingActionButton = {
+            if(!isInSelectionMode) {
             if(compact) androidx.compose.material3.FloatingActionButton(onClick={
                 if(!mainVM.loading.value) filePathLauncher.launch(openDocumentIntent)
             }) { androidx.compose.material3.Text("＋", modifier=Modifier.padding(12.dp),fontSize=androidx.compose.ui.unit.TextUnit(24f,androidx.compose.ui.unit.TextUnitType.Sp)) }
             else FilesFAB {
                 if(!mainVM.loading.value) filePathLauncher.launch(openDocumentIntent)
+            }
+            }
+        },
+        bottomBar = {
+            val target=transferTarget
+            if(target!=null && isInSelectionMode && selectedItems.isNotEmpty()) {
+                androidx.compose.material3.Surface(tonalElevation=3.dp) {
+                    Column(Modifier.navigationBarsPadding().padding(horizontal=8.dp,vertical=6.dp)) {
+                        androidx.compose.material3.Text("目标：${target.name}",
+                            style=androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                            maxLines=1,overflow=androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        androidx.compose.material3.Button(
+                            onClick={pendingTransfer=PendingTransfer(selectedItems.toList(),target)},
+                            enabled=!movingFiles && !loading,
+                            modifier=androidx.compose.ui.Modifier.fillMaxWidth().height(48.dp)
+                        ) { androidx.compose.material3.Text(target.label,maxLines=1) }
+                    }
+                }
             }
         },
         topBar = {
@@ -262,9 +293,32 @@ fun FilesScreen(
                     try { context.startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(item.uri, item.mimeType).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)) }
                     catch(e: Exception) { android.widget.Toast.makeText(context,"没有支持此格式的应用", android.widget.Toast.LENGTH_SHORT).show() }
                 },
+                transferLabel=transferTarget?.label,
+                transferToRight=transferTarget?.toRight ?: true,
+                onTransfer=transferTarget?.takeUnless { movingFiles }?.let { target ->
+                    { items: List<DocumentItem> -> pendingTransfer=PendingTransfer(items.toList(),target) }
+                },
                 onCompress = { files ->
                     showArchiveDialog = true
                 }
+            )
+        }
+
+        pendingTransfer?.let { transfer ->
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest={pendingTransfer=null},
+                title={androidx.compose.material3.Text("移动 ${transfer.items.size} 项？")},
+                text={androidx.compose.material3.Text("目标：${transfer.target.name}\n同名会自动改名，已有文件保留。成功后文件会从原目录移出。")},
+                confirmButton={androidx.compose.material3.TextButton(
+                    enabled=!movingFiles,
+                    onClick={
+                        pendingTransfer=null
+                        mainVM.moveAcross(uri,transfer.items.map { it.uri },transfer.target.uri)
+                        resetSelectionMode()
+                    }) {androidx.compose.material3.Text("确认移动")}},
+                dismissButton={androidx.compose.material3.TextButton(onClick={pendingTransfer=null}) {
+                    androidx.compose.material3.Text("取消")
+                }}
             )
         }
 

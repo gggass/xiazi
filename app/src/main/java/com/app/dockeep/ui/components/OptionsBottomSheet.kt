@@ -2,6 +2,7 @@ package com.app.dockeep.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowForward
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.outlined.Compress
@@ -26,7 +27,10 @@ fun OptionsBottomSheet(
     onMove: (List<DocumentItem>, Boolean) -> Unit,
     onCompress:(List<DocumentItem>) -> Unit,
     onExport: (DocumentItem) -> Unit,
-    onOpenExternal: (DocumentItem) -> Unit
+    onOpenExternal: (DocumentItem) -> Unit,
+    transferLabel: String? = null,
+    transferToRight: Boolean = true,
+    onTransfer: ((List<DocumentItem>) -> Unit)? = null
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss
@@ -57,6 +61,11 @@ fun OptionsBottomSheet(
                 }
             }
 
+            if(transferLabel!=null && onTransfer!=null) {
+                OptionsListItem(transferLabel, if(transferToRight) Icons.AutoMirrored.Outlined.ArrowForward else Icons.AutoMirrored.Outlined.ArrowBack) {
+                    onTransfer(items); onDismiss()
+                }
+            }
             OptionsListItem("移入回收站", Icons.Outlined.Delete) { onDelete(items); onDismiss() }
         }
     }

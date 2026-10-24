@@ -68,9 +68,9 @@ class FilesRepositoryImpl(private val context: Context) : FilesRepository {
             val u = VaultFiles.uri(context, f)
             DocumentItem(id = u.toString(), name = f.name, mimeType = VaultFiles.mime(f), isFolder = f.isDirectory, uri = u, size = f.length(), date = f.lastModified())
         }
-    override suspend fun createDirectory(parentUri: Uri, folderName: String): Uri {
+    override suspend fun createDirectory(parentUri: Uri, folderName: String): Uri = synchronized(VaultFiles) {
         val f = VaultFiles.unique(dir(parentUri), VaultFiles.validName(folderName))
-        require(f.mkdir()) { "无法新建文件夹" }; return VaultFiles.uri(context, f)
+        require(f.mkdir()) { "无法新建文件夹" }; VaultFiles.uri(context, f)
     }
     override suspend fun listAllDirectories(root: Uri, parent: String): List<Pair<String, Uri>> {
         val folder = dir(root)
@@ -90,7 +90,10 @@ class FilesRepositoryImpl(private val context: Context) : FilesRepository {
     }
     override suspend fun deleteDocument(uri: Uri) { VaultTrash(context).move(uri) }
     override suspend fun pathExists(uri: Uri) = runCatching { VaultFiles.file(context, uri).exists() }.getOrDefault(false)
-    override suspend fun moveDocument(uri: Uri, destination: Uri) { throw UnsupportedOperationException() }
+    override suspend fun moveDocument(uri: Uri, destination: Uri) {
+        val result = VaultMover(root,VaultFiles).move(listOf(VaultFiles.file(context,uri)),dir(destination))
+        check(result.failures.isEmpty()) { result.failures.first().reason }
+    }
     override suspend fun searchFiles(query: String, root: Uri): List<DocumentItem> {
         val result = mutableListOf<DocumentItem>()
         suspend fun visit(uri: Uri) { listFilesInDirectory(uri).forEach {
