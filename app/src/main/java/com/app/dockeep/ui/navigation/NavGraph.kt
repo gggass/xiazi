@@ -65,7 +65,7 @@ fun NavGraph(navController: NavHostController,firstStart: Boolean) {
             }
         }
         if(showRight) {
-            VerticalDivider(Modifier.fillMaxHeight(),thickness=1.dp)
+            VerticalDivider(Modifier.fillMaxHeight(),thickness=1.dp, color=androidx.compose.material3.MaterialTheme.colorScheme.outlineVariant)
             Box(Modifier.weight(1f).fillMaxHeight().testTag("right-pane").pointerInput(Unit) {
                 awaitPointerEventScope { while(true) { val e=awaitPointerEvent(PointerEventPass.Initial);if(e.changes.any {it.pressed}) activeRight=true } }
             }) {
@@ -91,3 +91,4 @@ private fun transferTarget(entry: androidx.navigation.NavBackStackEntry?,toRight
     val relative=Uri.parse(uri).pathSegments.getOrNull(1).orEmpty()
     return TransferTarget(uri,if(relative.isBlank()) "匣子" else "匣子/$relative",toRight)
 }
+

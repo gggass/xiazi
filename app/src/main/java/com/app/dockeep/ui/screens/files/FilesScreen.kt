@@ -167,9 +167,14 @@ fun FilesScreen(
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehaviour.nestedScrollConnection),
+        containerColor = androidx.compose.material3.MaterialTheme.colorScheme.background,
         floatingActionButton = {
             if(!isInSelectionMode) {
-            if(compact) androidx.compose.material3.FloatingActionButton(onClick={
+            if(compact) androidx.compose.material3.FloatingActionButton(
+                containerColor=androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                contentColor=androidx.compose.material3.MaterialTheme.colorScheme.onPrimary,
+                elevation=androidx.compose.material3.FloatingActionButtonDefaults.elevation(defaultElevation=2.dp),
+                onClick={
                 if(!mainVM.loading.value) filePathLauncher.launch(openDocumentIntent)
             }) { androidx.compose.material3.Text("＋", modifier=Modifier.padding(12.dp),fontSize=androidx.compose.ui.unit.TextUnit(24f,androidx.compose.ui.unit.TextUnitType.Sp)) }
             else FilesFAB {
@@ -180,7 +185,7 @@ fun FilesScreen(
         bottomBar = {
             val target=transferTarget
             if(target!=null && isInSelectionMode && selectedItems.isNotEmpty()) {
-                androidx.compose.material3.Surface(tonalElevation=3.dp) {
+                androidx.compose.material3.Surface(color=androidx.compose.material3.MaterialTheme.colorScheme.surface, tonalElevation=0.dp) {
                     Column(Modifier.navigationBarsPadding().padding(horizontal=8.dp,vertical=6.dp)) {
                         androidx.compose.material3.Text("目标：${target.name}",
                             style=androidx.compose.material3.MaterialTheme.typography.bodySmall,
@@ -447,7 +452,7 @@ fun FilesScreen(
 
                     item {
                         Spacer(
-                            modifier = Modifier.height(50.dp)
+                            modifier = Modifier.height(88.dp)
                         )
                     }
                 }
@@ -472,3 +477,4 @@ private fun android.content.Context.exportVault(source: android.net.Uri, destina
     }
     require(digest.digest().contentEquals(saved.digest())) { "副本校验未通过，请重新导出" }
 }
+

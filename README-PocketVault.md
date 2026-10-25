@@ -1,9 +1,13 @@
-# 匣子 PocketVault 0.3.0 简版
+# 匣子 PocketVault 0.3.1 简版
 
 基于 mattgdot/Dockeep 修改的 Android 本地私有文件收纳原型。
 上游：https://github.com/mattgdot/Dockeep
 基线提交：1b298da170308c06a6bb2410908e9240e96fabec
 许可证：GPL-3.0，参见 LICENSE。保留上游 UPSTREAM-README.md、版权及许可证。
+
+## 蓝白轻量外观
+
+默认采用蓝白配色：浅色页面、白色文件条目、蓝色文件图标和收纳按钮。搜索框改为小圆角，减少阴影和厚重色块；双栏保留紧凑布局。设置中仍可切换暖白，已有暖白选择会保留。
 
 ## 跨栏移动
 
@@ -20,7 +24,7 @@
 - 若搜索选中了包含当前所在目录的上级文件夹，请先返回上级目录后再移动。
 - 收起右侧后保留右侧位置；单栏时隐藏跨栏移动入口。暂不支持跨栏复制或移动手机外部目录。
 
-应用 ID 为 com.pocketvault.app，版本 0.3.0 / versionCode 6；覆盖安装需使用原签名，原私有存储路径保持不变。
+应用 ID 为 com.pocketvault.app，版本 0.3.1 / versionCode 7；覆盖安装需使用原签名，原私有存储路径保持不变。
 旧错误报告继续停用。暖白和蓝白主题使用相同布局。
 
 ## 当前功能
@@ -31,7 +35,7 @@
 - 备份先在内部生成并校验，再复制到选定目录，回读核对 SHA-256。失败不报告成功。
 - 支持导入匣子备份或普通 ZIP，先展示数量和空间，再在临时目录验证 CRC、大小；匣子备份还验证逐文件 SHA-256。
 - 恢复完成后生成独立的“导入备份-日期-编号”文件夹，不覆盖或合并现有文件。备份中的回收站保存在这个独立文件夹内，不加入当前回收站。
-- 应用 ID 为 com.pocketvault.app，当前版本 0.3.0 / versionCode 6；沿用原私有存储路径。
+- 应用 ID 为 com.pocketvault.app，当前版本 0.3.1 / versionCode 7；沿用原私有存储路径。
 
 ## 已有功能
 
@@ -68,3 +72,4 @@ Compose BOM 2024.09.02、compiler 1.5.14。Android 8.0 / API 26 起。
 
 沿用 Dockeep Compose 列表与导航，采用 AndroidViewModel，不新增库依赖。内部只读 ContentProvider 不发布 DocumentsProvider 仓库入口。禁用自动备份和系统应用数据迁移。
 本仓库保存当前最新版源码，不包含 APK 或签名私钥。正常 Android 环境可使用 Gradle Wrapper 构建。测试结果及边界见 VERIFICATION.md。
+

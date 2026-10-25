@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
             val firstStart by mainVM.firstStart
             DockeepTheme(
                 darkTheme = when (theme) {
-                    ThemeMode.AUTO -> false
+                    ThemeMode.AUTO -> true
                     ThemeMode.DARK -> true
                     ThemeMode.LIGHT -> false
                 }
@@ -43,3 +43,4 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+

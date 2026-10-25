@@ -39,7 +39,7 @@ class SafetyActivity : ComponentActivity() {
                 if(uri!=null && vm.setDirectory(uri) && backupAfterChoice) vm.createBackup(includeTrash)
             }
             val zipPicker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri -> if(uri!=null) vm.inspectSource(uri) }
-            DockeepTheme(darkTheme=theme==ThemeMode.DARK) {
+            DockeepTheme(darkTheme=theme!=ThemeMode.LIGHT) {
                 BackHandler(enabled=state.busy) { }
                 Scaffold(topBar={ TopAppBar(title={ Text("回收站与备份") },navigationIcon={ BackChevron { if(!state.busy) finish() } }) }) { padding ->
                     LazyColumn(Modifier.fillMaxSize().padding(padding),contentPadding=PaddingValues(20.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
@@ -87,3 +87,4 @@ class SafetyActivity : ComponentActivity() {
         }
     }
 }
+

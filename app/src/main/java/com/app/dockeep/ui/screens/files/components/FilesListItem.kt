@@ -51,16 +51,18 @@ fun FileListItem(
         return
     }
     ListItem(
-        colors = if(isSelected)  ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.onSecondaryContainer.copy(0.3f)
-        ) else ListItemDefaults.colors(),
+        colors = ListItemDefaults.colors(
+            containerColor = if(isSelected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
+            supportingColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            trailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
         headlineContent = {
             Text(
                 item.name,
                 overflow = TextOverflow.Ellipsis,
                 maxLines = 1,
                 fontSize = TextUnit(16f, TextUnitType.Sp),
-                fontWeight = if (item.isFolder) FontWeight.Bold else FontWeight.Normal
+                fontWeight = if (item.isFolder) FontWeight.Medium else FontWeight.Normal
             )
         },
         supportingContent = {
@@ -74,24 +76,26 @@ fun FileListItem(
         leadingContent = {
                 Box(
                     modifier = Modifier
-                        .size(50.dp)
-                        .clip(RoundedCornerShape(14.dp))
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
                         .background(MaterialTheme.colorScheme.surfaceContainerHigh),
                     contentAlignment = Alignment.Center
                 ) {
                     if(item.isFolder) {
                         Icon(
                             Icons.Default.Folder,
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(22.dp)
                         )
                     } else {
                         var ext = item.mimeType.substringAfter("/")
                         if(ext.length > 5 || ext.isEmpty()) ext = item.name.substringAfterLast(".")
                         Text(
                             text = ext,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 13.sp
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 11.sp
                         )
                     }
                 }
@@ -117,8 +121,8 @@ fun FileListItem(
             }
         },
         modifier = Modifier
-            .clip(RoundedCornerShape(16.dp))
-            .padding(2.dp)
+            .padding(horizontal = 12.dp, vertical = 3.dp)
+            .clip(RoundedCornerShape(14.dp))
             .combinedClickable(
                 onClick = {
                     if (selectionMode) {
@@ -151,12 +155,12 @@ fun FileListItem(
 private fun CompactFileItem(item: DocumentItem,onClick:()->Unit,onMore:()->Unit,
                             selected:Boolean,selectionMode:Boolean,onSelect:()->Unit,onLong:()->Unit) {
     androidx.compose.foundation.layout.Row(
-        Modifier.background(if(selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface)
+        Modifier.padding(horizontal=4.dp,vertical=2.dp).clip(RoundedCornerShape(10.dp)).background(if(selected) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface)
             .combinedClickable(onClick={if(selectionMode) onSelect() else onClick()},onLongClick={if(selectionMode) onSelect() else onLong()})
             .padding(start=8.dp,top=4.dp,bottom=4.dp),
         verticalAlignment=Alignment.CenterVertically) {
         Icon(if(item.isFolder) Icons.Default.Folder else androidx.compose.material.icons.Icons.Outlined.InsertDriveFile,
-            null,Modifier.size(20.dp))
+            null,Modifier.size(20.dp),tint=MaterialTheme.colorScheme.primary)
         androidx.compose.foundation.layout.Column(Modifier.weight(1f).padding(start=6.dp)) {
             Text(item.name,maxLines=1,overflow=TextOverflow.Ellipsis,fontSize=14.sp)
             Text(if(item.isFolder) "文件夹" else runCatching { humanReadableSize(item.size?:0) }.getOrDefault("文件"),
@@ -166,3 +170,4 @@ private fun CompactFileItem(item: DocumentItem,onClick:()->Unit,onMore:()->Unit,
         else IconButton(onClick=onMore) { Icon(Icons.Default.MoreVert,"更多操作",Modifier.size(20.dp)) }
     }
 }
+

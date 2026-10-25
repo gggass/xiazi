@@ -1,5 +1,7 @@
 package com.app.dockeep.ui.components
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.WindowInsets
@@ -39,6 +41,10 @@ fun AppSearchBar(
 
 
     SearchBar(
+        shape = RoundedCornerShape(14.dp),
+        colors = SearchBarDefaults.colors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
         windowInsets = WindowInsets(0.dp, 0.dp, 0.dp, 0.dp),
         inputField = {
             SearchBarDefaults.InputField(
@@ -49,16 +55,14 @@ fun AppSearchBar(
                 onQueryChange = { newQueryString ->
                     onSearch(newQueryString)
                 },
-                onSearch = {
-
-                },
+                onSearch = { focusManager.clearFocus() },
                 expanded = false,
                 onExpandedChange = {  },
                 placeholder = {
                     Text(text = if(compact) "搜索" else "搜索文件名", fontSize = TextUnit(15f, TextUnitType.Sp),)
                 },
                 leadingIcon = {
-                    Icon(imageVector = Icons.Default.Search, contentDescription = null)
+                    Icon(imageVector = Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 },
                 trailingIcon = {
                     if (query.isNotBlank()) {
@@ -75,11 +79,12 @@ fun AppSearchBar(
         onExpandedChange = {},
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 10.dp)
-            .padding(bottom = 15.dp)
+            .padding(horizontal = if(compact) 8.dp else 16.dp)
+            .padding(bottom = 8.dp)
         ,
         content = {
         },
     )
 
 }
+

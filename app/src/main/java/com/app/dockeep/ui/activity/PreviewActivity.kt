@@ -22,8 +22,8 @@ class PreviewActivity : ComponentActivity() {
     override fun onCreate(state: Bundle?) {
         super.onCreate(state)
         androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window,false)
-        val blue = getSharedPreferences("vault_ui",MODE_PRIVATE).getString("theme","") == "DARK"
-        val background = if(blue) Color.rgb(248,250,253) else Color.rgb(250,247,241)
+        val blue = getSharedPreferences("vault_ui",MODE_PRIVATE).getString("theme","") != "LIGHT"
+        val background = if(blue) Color.rgb(247,249,253) else Color.rgb(250,247,241)
         val root = LinearLayout(this).apply { id = com.app.dockeep.R.id.preview_root; orientation = LinearLayout.VERTICAL; setBackgroundColor(background) }
         setContentView(root)
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
@@ -109,3 +109,4 @@ private fun java.io.InputStream.takeBytes(limit: Int): ByteArray {
     while(out.size() < limit) { val n = read(buf,0,minOf(buf.size,limit-out.size())); if(n < 0) break; out.write(buf,0,n) }
     return out.toByteArray()
 }
+
